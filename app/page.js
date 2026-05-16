@@ -1,6 +1,6 @@
 'use client'
 
-import { Sparkles, Users, Compass, Code, Award, TrendingUp } from 'lucide-react'
+import { Sparkles, Users, Compass, Code, Award, TrendingUp, FileText } from 'lucide-react'
 import Link from 'next/link'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -40,6 +40,13 @@ const features = [
         icon: Award,
         href: '/linkedin-github',
         gradient: 'from-indigo-500 to-blue-500',
+    },
+    {
+        title: 'PYQ Papers',
+        description: 'Access previous year question papers',
+        icon: FileText,
+        href: '/pyq',
+        gradient: 'from-violet-500 to-fuchsia-500',
     },
 ]
 
