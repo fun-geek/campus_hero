@@ -37,7 +37,8 @@ service cloud.firestore {
     }
 
     match /clubs/{clubId} {
-      allow read: if true;
+      // Students/public users can only read records explicitly published by an admin.
+      allow read: if resource.data.isPublished == true || isAdmin();
       allow write: if isAdmin();
     }
 
