@@ -23,8 +23,9 @@ service cloud.firestore {
     }
 
     match /users/{userId} {
-      // Public profile reads are retained for the existing mentor directory.
-      allow read: if true;
+      // Users can read their own profile; admins can review all profiles.
+      // Public mentor profiles are readable only after admin verification and publication.
+      allow read: if isOwner(userId) || isAdmin() || (resource.data.role in ['senior', 'faculty'] && resource.data.mentorData.verified == true && resource.data.mentorData.isPublished == true);
 
       // A user can only create their own profile, and self-signup can never create admins.
       allow create: if isOwner(userId)
