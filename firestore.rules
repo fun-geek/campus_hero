@@ -32,7 +32,7 @@ service cloud.firestore {
         && isSelfSignupRole(request.resource.data.role);
 
       // Users may edit their own profile; only admins may edit other profiles.
-      allow update: if isOwner(userId) || isAdmin();
+      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role && request.resource.data.mentorData.verified == resource.data.mentorData.verified && request.resource.data.mentorData.isPublished == resource.data.mentorData.isPublished);
 
       allow delete: if isAdmin();
     }
