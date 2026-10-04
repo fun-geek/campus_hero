@@ -1,21 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Search, Mail, Linkedin } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import MentorCard from '@/components/mentors/MentorCard'
-import { mentors, expertiseAreas, roleFilters } from '@/lib/data/mentors'
+import { mentors as fallbackMentors, expertiseAreas, roleFilters } from '@/lib/data/mentors'
+import { getMentors } from '@/lib/services/userService'
 
 export default function MentorsPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedExpertise, setSelectedExpertise] = useState('All')
     const [selectedRole, setSelectedRole] = useState('All')
+    const [mentors, setMentors] = useState(fallbackMentors)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        let mounted = true
+        getMentors({ publishedOnly: true }).then((result) => {
+            if (!mounted) return
+            if (result.success && result.data.length > 0) {
+                setMentors(result.data.map((item) => ({ id: item.id, name: item.displayName, email: item.email, ...(item.mentorData || {}) })))
+            }
+            setLoading(false)
+        })
+        return () => { mounted = false }
+    }, [])
 
     const filteredMentors = mentors.filter((mentor) => {
+        const expertise = Array.isArray(mentor.expertise) ? mentor.expertise : String(mentor.expertise || '').split(',').map((item) => item.trim()).filter(Boolean)
         const matchesSearch = mentor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            mentor.expertise.some(exp => exp.toLowerCase().includes(searchQuery.toLowerCase()))
-        const matchesExpertise = selectedExpertise === 'All' || mentor.expertise.includes(selectedExpertise)
+            expertise.some(exp => exp.toLowerCase().includes(searchQuery.toLowerCase()))
+        const matchesExpertise = selectedExpertise === 'All' || expertise.includes(selectedExpertise)
         const matchesRole = selectedRole === 'All' || mentor.role === selectedRole
         return matchesSearch && matchesExpertise && matchesRole
     })
@@ -77,7 +93,9 @@ export default function MentorsPage() {
 
                     {/* Mentors List */}
                     <div className="space-y-4">
-                        {filteredMentors.length > 0 ? (
+                        {loading ? (
+                            <Card className="text-center py-12"><p className="text-gray-600">Loading mentors...</p></Card>
+                        ) : filteredMentors.length > 0 ? (
                             filteredMentors.map((mentor) => (
                                 <MentorCard key={mentor.id} mentor={mentor} />
                             ))

@@ -8,6 +8,7 @@ import LoadingSpinner from '@/components/ui/LoadingSpinner'
 import ProtectedRoute from '@/components/auth/ProtectedRoute'
 import { getUsersByRole } from '@/lib/services/userService'
 import { createClub, updateClub, deleteClub, getClubs } from '@/lib/services/clubService'
+import { getMentors, updateMentorProfile } from '@/lib/services/userService'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 
@@ -26,6 +27,10 @@ function AdminDashboardContent() {
     const [clubError, setClubError] = useState('')
     const [editingClub, setEditingClub] = useState(null)
     const [showClubForm, setShowClubForm] = useState(false)
+    const [mentors, setMentors] = useState([])
+    const [mentorLoading, setMentorLoading] = useState(true)
+    const [mentorError, setMentorError] = useState('')
+
     const [clubForm, setClubForm] = useState({
         name: '', tagline: '', description: '', category: 'Technical',
         logo: '🏛️', memberCount: 0, website: '', joinProcess: '', contact: '',
@@ -35,7 +40,24 @@ function AdminDashboardContent() {
     useEffect(() => {
         loadStats()
         loadClubs()
+        loadMentors()
     }, [])
+
+    const loadMentors = async () => {
+        setMentorLoading(true)
+        const result = await getMentors()
+        if (result.success) setMentors(result.data)
+        else setMentorError(result.error || 'Unable to load mentors.')
+        setMentorLoading(false)
+    }
+
+    const handleMentorUpdate = async (mentor) => {
+        setMentorError('')
+        const current = mentor.mentorData || {}
+        const result = await updateMentorProfile(mentor.id, { ...current, verified: !current.verified, isPublished: !current.verified ? current.isPublished : false })
+        if (!result.success) setMentorError(result.error || 'Unable to update mentor.')
+        else await loadMentors()
+    }
 
     const loadClubs = async () => {
         setClubLoading(true)
@@ -290,6 +312,33 @@ function AdminDashboardContent() {
                                                 </div>
                                             </div>
                                         ))}
+                                    </div>
+                                )}
+                            </Card>
+
+                            {/* Mentor Verification */}
+                            <Card>
+                                <div className="mb-4">
+                                    <h2 className="text-lg font-semibold text-gray-800">Mentor Verification</h2>
+                                    <p className="text-xs text-gray-500">Review senior and faculty profiles before making them visible to students.</p>
+                                </div>
+                                {mentorError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">{mentorError}</div>}
+                                {mentorLoading ? <p className="text-sm text-gray-500">Loading mentor profiles...</p> : mentors.length === 0 ? <p className="text-sm text-gray-500">No senior or faculty profiles found.</p> : (
+                                    <div className="space-y-2">
+                                        {mentors.map((mentor) => {
+                                            const data = mentor.mentorData || {}
+                                            return <div key={mentor.id} className="rounded-lg border border-gray-100 p-3">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <p className="font-medium text-gray-800 truncate">{mentor.displayName}</p>
+                                                        <p className="text-xs text-gray-500">{data.role || mentor.role} · {data.currentPosition || 'Position not provided'}</p>
+                                                        <p className="text-xs mt-1"><span className={data.verified ? 'text-green-600' : 'text-amber-600'}>{data.verified ? 'Verified' : 'Unverified'}</span> · <span className={data.isPublished ? 'text-blue-600' : 'text-gray-500'}>{data.isPublished ? 'Published' : 'Draft'}</span></p>
+                                                    </div>
+                                                    <Button size="sm" variant={data.verified ? 'secondary' : 'primary'} onClick={() => handleMentorUpdate(mentor)}>{data.verified ? 'Unverify' : 'Verify'}</Button>
+                                                </div>
+                                                {data.expertise?.length > 0 && <p className="mt-2 text-xs text-gray-600">Expertise: {data.expertise.join(', ')}</p>}
+                                            </div>
+                                        })}
                                     </div>
                                 )}
                             </Card>

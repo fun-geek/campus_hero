@@ -143,11 +143,35 @@ export default function SignupPage() {
                 currentCompany: formData.currentCompany,
                 expertise: formData.expertise,
             }
+            profileData.mentorData = {
+                role: 'Senior',
+                year: formData.graduationYear,
+                currentPosition: formData.currentCompany,
+                expertise: formData.expertise.split(',').map((item) => item.trim()).filter(Boolean),
+                photo: '👨‍💻',
+                linkedin: '',
+                bio: '',
+                available: true,
+                verified: false,
+                isPublished: false,
+            }
         } else if (formData.role === 'faculty') {
             profileData.facultyData = {
                 department: formData.department,
                 designation: formData.designation,
                 specialization: formData.specialization,
+            }
+            profileData.mentorData = {
+                role: 'Faculty',
+                year: '',
+                currentPosition: formData.designation,
+                expertise: formData.specialization.split(',').map((item) => item.trim()).filter(Boolean),
+                photo: '👨‍🏫',
+                linkedin: '',
+                bio: '',
+                available: true,
+                verified: false,
+                isPublished: false,
             }
         }
 
