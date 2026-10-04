@@ -1,15 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Search, Filter } from 'lucide-react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import ClubCard from '@/components/clubs/ClubCard'
-import { clubs, categories } from '@/lib/data/clubs'
+import { clubs as fallbackClubs, categories as fallbackCategories } from '@/lib/data/clubs'
+import { getClubs } from '@/lib/services/clubService'
 
 export default function ClubsPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('All')
+    const [clubs, setClubs] = useState(fallbackClubs)
+    const [categories, setCategories] = useState(fallbackCategories)
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        let mounted = true
+        getClubs().then((result) => {
+            if (!mounted) return
+            if (result.success && result.data.length > 0) {
+                setClubs(result.data)
+                setCategories(['All', ...new Set(result.data.map((club) => club.category).filter(Boolean))])
+            }
+            setLoading(false)
+        })
+        return () => { mounted = false }
+    }, [])
 
     const filteredClubs = clubs.filter((club) => {
         const matchesSearch = club.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,7 +75,11 @@ export default function ClubsPage() {
 
                     {/* Clubs Grid */}
                     <div className="space-y-4">
-                        {filteredClubs.length > 0 ? (
+                        {loading ? (
+                            <Card className="text-center py-12">
+                                <p className="text-gray-600">Loading clubs...</p>
+                            </Card>
+                        ) : filteredClubs.length > 0 ? (
                             filteredClubs.map((club) => (
                                 <ClubCard key={club.id} club={club} />
                             ))

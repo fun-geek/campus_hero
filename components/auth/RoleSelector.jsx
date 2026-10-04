@@ -1,6 +1,6 @@
 'use client'
 
-import { GraduationCap, Award, Users, Shield } from 'lucide-react'
+import { GraduationCap, Award, Users } from 'lucide-react'
 import Card from '../ui/Card'
 
 const roles = [
@@ -27,14 +27,6 @@ const roles = [
         icon: Users,
         gradient: 'from-green-500 to-emerald-500',
         features: ['Academic guidance', 'Mentor students', 'Share resources', 'Department insights']
-    },
-    {
-        id: 'admin',
-        title: 'Admin',
-        description: 'Manage platform and content',
-        icon: Shield,
-        gradient: 'from-orange-500 to-red-500',
-        features: ['User management', 'Content moderation', 'Analytics', 'Full access']
     },
 ]
 
@@ -70,7 +62,7 @@ export default function RoleSelector({ selectedRole, onSelectRole }) {
                                     {selectedRole === role.id && (
                                         <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center">
                                             <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 1.414l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 010 1.414z" clipRule="evenodd" />
                                             </svg>
                                         </div>
                                     )}
@@ -78,10 +70,7 @@ export default function RoleSelector({ selectedRole, onSelectRole }) {
                                 <p className="text-sm text-gray-600 mb-2">{role.description}</p>
                                 <div className="flex flex-wrap gap-1">
                                     {role.features.slice(0, 2).map((feature, idx) => (
-                                        <span
-                                            key={idx}
-                                            className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600"
-                                        >
+                                        <span key={idx} className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-600">
                                             {feature}
                                         </span>
                                     ))}
@@ -91,6 +80,10 @@ export default function RoleSelector({ selectedRole, onSelectRole }) {
                     </Card>
                 ))}
             </div>
+
+            <p className="text-xs text-center text-gray-500 pt-1">
+                Admin access is provisioned separately for platform security.
+            </p>
         </div>
     )
 }
