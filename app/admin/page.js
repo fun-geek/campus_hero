@@ -30,6 +30,11 @@ function AdminDashboardContent() {
     const [mentors, setMentors] = useState([])
     const [mentorLoading, setMentorLoading] = useState(true)
     const [mentorError, setMentorError] = useState('')
+    const [editingMentor, setEditingMentor] = useState(null)
+    const [mentorForm, setMentorForm] = useState({
+        bio: '', currentPosition: '', expertise: '', linkedin: '', photo: '👨‍💻',
+        available: true, verified: false, isPublished: false
+    })
 
     const [clubForm, setClubForm] = useState({
         name: '', tagline: '', description: '', category: 'Technical',
@@ -51,12 +56,40 @@ function AdminDashboardContent() {
         setMentorLoading(false)
     }
 
-    const handleMentorUpdate = async (mentor) => {
+    const openMentorEditor = (mentor) => {
+        const data = mentor.mentorData || {}
+        setEditingMentor(mentor)
+        setMentorForm({
+            bio: data.bio || '',
+            currentPosition: data.currentPosition || '',
+            expertise: Array.isArray(data.expertise) ? data.expertise.join(', ') : data.expertise || '',
+            linkedin: data.linkedin || '',
+            photo: data.photo || '👨‍💻',
+            available: data.available !== false,
+            verified: data.verified === true,
+            isPublished: data.isPublished === true,
+        })
+    }
+
+    const resetMentorEditor = () => {
+        setEditingMentor(null)
+        setMentorForm({ bio: '', currentPosition: '', expertise: '', linkedin: '', photo: '👨‍💻', available: true, verified: false, isPublished: false })
+    }
+
+    const handleMentorSubmit = async (event) => {
+        event.preventDefault()
+        if (!editingMentor) return
         setMentorError('')
-        const current = mentor.mentorData || {}
-        const result = await updateMentorProfile(mentor.id, { ...current, verified: !current.verified, isPublished: !current.verified ? current.isPublished : false })
-        if (!result.success) setMentorError(result.error || 'Unable to update mentor.')
-        else await loadMentors()
+        const result = await updateMentorProfile(editingMentor.id, {
+            ...mentorForm,
+            expertise: mentorForm.expertise.split(',').map((item) => item.trim()).filter(Boolean),
+        })
+        if (!result.success) {
+            setMentorError(result.error || 'Unable to save mentor.')
+            return
+        }
+        resetMentorEditor()
+        await loadMentors()
     }
 
     const loadClubs = async () => {
@@ -337,6 +370,51 @@ function AdminDashboardContent() {
                                                     <Button size="sm" variant={data.verified ? 'secondary' : 'primary'} onClick={() => handleMentorUpdate(mentor)}>{data.verified ? 'Unverify' : 'Verify'}</Button>
                                                 </div>
                                                 {data.expertise?.length > 0 && <p className="mt-2 text-xs text-gray-600">Expertise: {data.expertise.join(', ')}</p>}
+                                            </div>
+                                        })}
+                                    </div>
+                                )}
+                            </Card>
+
+                            {/* Mentor Verification */}
+                            <Card>
+                                <div className="mb-4">
+                                    <h2 className="text-lg font-semibold text-gray-800">Mentor Verification</h2>
+                                    <p className="text-xs text-gray-500">Review and publish senior and faculty profiles.</p>
+                                </div>
+                                {mentorError && <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">{mentorError}</div>}
+                                {editingMentor && (
+                                    <form onSubmit={handleMentorSubmit} className="mb-5 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="font-semibold">Edit {editingMentor.displayName}</h3>
+                                            <button type="button" onClick={resetMentorEditor} aria-label="Close"><X className="w-5 h-5 text-gray-500" /></button>
+                                        </div>
+                                        <Input label="Current Position" value={mentorForm.currentPosition} onChange={(e) => setMentorForm({...mentorForm, currentPosition: e.target.value})} />
+                                        <Input label="Expertise (comma separated)" value={mentorForm.expertise} onChange={(e) => setMentorForm({...mentorForm, expertise: e.target.value})} />
+                                        <Input label="LinkedIn URL" type="url" value={mentorForm.linkedin} onChange={(e) => setMentorForm({...mentorForm, linkedin: e.target.value})} />
+                                        <Input label="Photo / Avatar" value={mentorForm.photo} onChange={(e) => setMentorForm({...mentorForm, photo: e.target.value})} />
+                                        <textarea value={mentorForm.bio} onChange={(e) => setMentorForm({...mentorForm, bio: e.target.value})} placeholder="Mentor bio" rows={3} className="w-full rounded-xl border border-gray-200 p-3 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={mentorForm.available} onChange={(e) => setMentorForm({...mentorForm, available: e.target.checked})} /> Available</label>
+                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={mentorForm.verified} onChange={(e) => setMentorForm({...mentorForm, verified: e.target.checked, isPublished: e.target.checked ? mentorForm.isPublished : false})} /> Verified</label>
+                                            <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={mentorForm.isPublished} disabled={!mentorForm.verified} onChange={(e) => setMentorForm({...mentorForm, isPublished: e.target.checked})} /> Published</label>
+                                        </div>
+                                        <div className="flex gap-2"><Button type="submit">Save Mentor</Button><Button type="button" variant="secondary" onClick={resetMentorEditor}>Cancel</Button></div>
+                                    </form>
+                                )}
+                                {mentorLoading ? <p className="text-sm text-gray-500">Loading mentor profiles...</p> : mentors.length === 0 ? <p className="text-sm text-gray-500">No senior or faculty profiles found.</p> : (
+                                    <div className="space-y-2">
+                                        {mentors.map((mentor) => {
+                                            const data = mentor.mentorData || {}
+                                            return <div key={mentor.id} className="rounded-lg border border-gray-100 p-3">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <p className="font-medium text-gray-800 truncate">{mentor.displayName}</p>
+                                                        <p className="text-xs text-gray-500">{data.role || mentor.role} · {data.currentPosition || 'Position not provided'}</p>
+                                                        <p className="text-xs mt-1"><span className={data.verified ? 'text-green-600' : 'text-amber-600'}>{data.verified ? 'Verified' : 'Unverified'}</span> · <span className={data.isPublished ? 'text-blue-600' : 'text-gray-500'}>{data.isPublished ? 'Published' : 'Draft'}</span> · <span>{data.available === false ? 'Unavailable' : 'Available'}</span></p>
+                                                    </div>
+                                                    <Button size="sm" variant="secondary" onClick={() => openMentorEditor(mentor)}><Pencil className="w-4 h-4" /> Edit</Button>
+                                                </div>
                                             </div>
                                         })}
                                     </div>
