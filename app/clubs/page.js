@@ -17,7 +17,7 @@ export default function ClubsPage() {
 
     useEffect(() => {
         let mounted = true
-        getClubs().then((result) => {
+        getClubs({ publishedOnly: true }).then((result) => {
             if (!mounted) return
             if (result.success && result.data.length > 0) {
                 setClubs(result.data)
@@ -42,7 +42,7 @@ export default function ClubsPage() {
                     {/* Header */}
                     <div className="mb-6">
                         <h1 className="text-3xl font-bold text-gray-800 mb-2">Club Explorer</h1>
-                        <p className="text-gray-600">Discover and join campus clubs</p>
+                        <p className="text-gray-600">Discover verified campus clubs</p>
                     </div>
 
                     {/* Search Bar */}

@@ -28,7 +28,8 @@ function AdminDashboardContent() {
     const [showClubForm, setShowClubForm] = useState(false)
     const [clubForm, setClubForm] = useState({
         name: '', tagline: '', description: '', category: 'Technical',
-        logo: '🏛️', memberCount: 0, website: '', joinProcess: '', contact: ''
+        logo: '🏛️', memberCount: 0, website: '', joinProcess: '', contact: '',
+        source: '', verified: false, isPublished: false
     })
 
     useEffect(() => {
@@ -83,6 +84,9 @@ function AdminDashboardContent() {
             website: club.website || '',
             joinProcess: club.joinProcess || '',
             contact: club.contact || '',
+            source: club.source || '',
+            verified: club.verified === true,
+            isPublished: club.isPublished === true,
         })
         setShowClubForm(true)
     }
@@ -197,7 +201,7 @@ function AdminDashboardContent() {
                                 <div className="flex items-center justify-between gap-3 mb-4">
                                     <div>
                                         <h2 className="text-lg font-semibold text-gray-800">Club Management</h2>
-                                        <p className="text-xs text-gray-500">Create and maintain the clubs shown to students.</p>
+                                        <p className="text-xs text-gray-500">Verify the source before publishing a club to students.</p>
                                     </div>
                                     <Button size="sm" onClick={() => {
                                         setEditingClub(null)
@@ -244,6 +248,11 @@ function AdminDashboardContent() {
                                             <Input label="Contact Email" type="email" value={clubForm.contact} onChange={(e) => setClubForm({...clubForm, contact: e.target.value})} />
                                         </div>
                                         <Input label="Website" type="url" value={clubForm.website} onChange={(e) => setClubForm({...clubForm, website: e.target.value})} />
+                                        <Input label="Source / Verification Reference" value={clubForm.source} onChange={(e) => setClubForm({...clubForm, source: e.target.value})} placeholder="Official college page, club page, notice, etc." />
+                                        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                                            <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={clubForm.verified} onChange={(e) => setClubForm({...clubForm, verified: e.target.checked})} /> Verified by admin</label>
+                                            <label className="flex items-center gap-2 text-sm text-gray-700"><input type="checkbox" checked={clubForm.isPublished} onChange={(e) => setClubForm({...clubForm, isPublished: e.target.checked})} /> Publish to students</label>
+                                        </div>
                                         <textarea
                                             value={clubForm.joinProcess}
                                             onChange={(e) => setClubForm({...clubForm, joinProcess: e.target.value})}
@@ -269,6 +278,7 @@ function AdminDashboardContent() {
                                                 <div className="min-w-0">
                                                     <p className="font-medium text-gray-800 truncate">{club.logo} {club.name}</p>
                                                     <p className="text-xs text-gray-500">{club.category} · {club.memberCount || 0} members</p>
+                                                    <p className="text-xs mt-1"><span className={club.verified ? 'text-green-600' : 'text-amber-600'}>{club.verified ? 'Verified' : 'Unverified'}</span> · <span className={club.isPublished ? 'text-blue-600' : 'text-gray-500'}>{club.isPublished ? 'Published' : 'Draft'}</span>{club.source ? ` · ${club.source}` : ''}</p>
                                                 </div>
                                                 <div className="flex gap-1">
                                                     <button type="button" onClick={() => handleEditClub(club)} className="p-2 rounded-lg hover:bg-gray-100" aria-label="Edit club">
